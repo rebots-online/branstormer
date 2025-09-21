@@ -13,3 +13,6 @@ server/dist/
 tests/e2e/playwright-report/
 coverage/
 husky/_/
+*.tsbuildinfo
+**/vite.config.js
+**/vite.config.d.ts
