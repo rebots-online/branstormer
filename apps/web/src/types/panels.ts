@@ -41,4 +41,5 @@ export interface AgentSession {
   composerValue: string;
   setComposerValue: (value: string) => void;
   sendUserMessage: () => void;
+  sendCanvasAction: (description: string) => void;
 }
