@@ -1,4 +1,4 @@
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 
 import PanelHeader from './PanelHeader';
 import { AgentProfile, AgentSession } from '../../types/panels';
@@ -11,11 +11,22 @@ interface AgentPanelProps {
 }
 
 const AgentPanel = ({ agents, activeAgentId, onSelect, session }: AgentPanelProps): JSX.Element => {
-  const { transcript, composerValue, setComposerValue, sendUserMessage } = session;
+  const { transcript, composerValue, setComposerValue, sendUserMessage, sendCanvasAction } =
+    session;
+  const [canvasAction, setCanvasAction] = useState('');
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     sendUserMessage();
+  };
+
+  const handleCanvasAction = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = canvasAction.trim();
+    if (trimmed) {
+      sendCanvasAction(trimmed);
+      setCanvasAction('');
+    }
   };
 
   return (
@@ -72,6 +83,21 @@ const AgentPanel = ({ agents, activeAgentId, onSelect, session }: AgentPanelProp
         />
         <button type="submit" className="send-button">
           Send
+        </button>
+      </form>
+
+      <form className="agent-canvas-action" onSubmit={handleCanvasAction}>
+        <label htmlFor="agent-canvas-action">Ask the agent to draw</label>
+        <input
+          id="agent-canvas-action"
+          name="agent-canvas-action"
+          type="text"
+          placeholder="e.g., Sketch a mind map for the sprint goals"
+          value={canvasAction}
+          onChange={(event) => setCanvasAction(event.target.value)}
+        />
+        <button type="submit" className="send-button">
+          Send canvas action
         </button>
       </form>
     </div>

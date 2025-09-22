@@ -1,6 +1,7 @@
 import { createLogger } from '@shared-utils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useModelContext } from '../context/ModelProvider';
 import { getAgentById } from '../state/agents';
 import { AgentMessage, AgentSession } from '../types/panels';
 
@@ -11,6 +12,7 @@ const createMessageId = () => `${Date.now()}-${Math.random().toString(16).slice(
 export const useAgentSession = (activeAgentId: string): AgentSession => {
   const [transcript, setTranscript] = useState<AgentMessage[]>([]);
   const [composerValue, setComposerValue] = useState('');
+  const { activeModelId } = useModelContext();
 
   const activeAgent = useMemo(() => getAgentById(activeAgentId), [activeAgentId]);
 
@@ -57,7 +59,7 @@ export const useAgentSession = (activeAgentId: string): AgentSession => {
       id: createMessageId(),
       agentId: activeAgentId,
       author: 'agent',
-      content: `${activeAgent.name} acknowledges: “${trimmed}”. (Model: ${activeAgent.model}, temp=${activeAgent.temperature})`,
+      content: `${activeAgent.name} (${activeModelId}) acknowledges: “${trimmed}”. (Profile model: ${activeAgent.model}, temp=${activeAgent.temperature})`,
       timestamp: new Date().toISOString(),
     };
 
@@ -67,7 +69,28 @@ export const useAgentSession = (activeAgentId: string): AgentSession => {
       agentId: activeAgentId,
       userMessageLength: trimmed.length,
     });
-  }, [activeAgent, activeAgentId, composerValue]);
+  }, [activeAgent, activeAgentId, activeModelId, composerValue]);
+
+  const sendCanvasAction = useCallback(
+    (description: string) => {
+      if (!activeAgent) {
+        logger.warn('Cannot perform canvas action without active agent');
+        return;
+      }
+
+      const timestamp = new Date().toISOString();
+      const systemMessage: AgentMessage = {
+        id: createMessageId(),
+        agentId: activeAgentId,
+        author: 'system',
+        content: `${activeAgent.name} (${activeModelId}) suggests canvas update: ${description}`,
+        timestamp,
+      };
+      setTranscript((previous) => [...previous, systemMessage]);
+      logger.info('Agent issued canvas action', { agentId: activeAgentId, description });
+    },
+    [activeAgent, activeAgentId, activeModelId]
+  );
 
   return {
     activeAgentId,
@@ -75,5 +98,6 @@ export const useAgentSession = (activeAgentId: string): AgentSession => {
     composerValue,
     setComposerValue,
     sendUserMessage,
+    sendCanvasAction,
   };
 };
