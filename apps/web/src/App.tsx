@@ -23,7 +23,7 @@ const AppContent = (): JSX.Element => {
   const [tldrawApp, setTldrawApp] = useState<TldrawApp | null>(null);
   const [latestSnapshot, setLatestSnapshot] = useState<TLStoreSnapshot>();
 
-  const agentSession = useAgentSession(activeAgentId);
+  const agentSession = useAgentSession(activeAgentId, tldrawApp);
   useAgentCollaborator({ session: agentSession, app: tldrawApp, latestSnapshot });
 
   const initialLibraryCount = LIBRARIES.length;
@@ -176,6 +176,7 @@ const AppContent = (): JSX.Element => {
           activeAgentId={activeAgentId}
           onSelect={handleSelectAgent}
           session={agentSession}
+          tldrawApp={tldrawApp}
         />
       }
       floatingPanels={floatingPanels}

@@ -8,6 +8,10 @@
     radial-gradient(circle at 80% 0%, rgba(192, 132, 252, 0.08), transparent 60%);
   color: #f8fafc;
   min-height: 100vh;
+
+  --font-size-body: 16px;
+  --font-size-header: 20px;
+  --font-size-panels: 14px;
 }
 
 * {
@@ -57,7 +61,7 @@ main {
 
 .workspace-chrome__title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--font-size-header);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(226, 232, 240, 0.9);
@@ -143,7 +147,7 @@ main {
 
 .floating-panel__header h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--font-size-header);
   font-weight: 600;
   color: rgba(226, 232, 240, 0.9);
 }
@@ -193,7 +197,7 @@ main {
 
 .chat-dock h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--font-size-header);
   color: rgba(226, 232, 240, 0.9);
 }
 
@@ -224,17 +228,18 @@ main {
 }
 
 .chat-dock--horizontal {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: clamp(320px, 30vh, 420px);
+  width: 100%;
+  height: clamp(200px, 25vh, 300px);
+  z-index: 15;
   border-left: none;
   border-top: 1px solid rgba(148, 163, 184, 0.16);
   display: flex;
   flex-direction: column;
   padding: 1rem 1.5rem;
-  flex: none;
 }
 
 .chat-dock--vertical {
@@ -281,7 +286,7 @@ main {
 
 .panel-header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--font-size-header);
   font-weight: 600;
   color: #e2e8f0;
 }
@@ -328,7 +333,7 @@ main {
 .library-card__description {
   margin: 0.35rem 0 0;
   color: rgba(148, 163, 184, 0.9);
-  font-size: 0.9rem;
+  font-size: var(--font-size-body);
 }
 
 .library-card__meta {
@@ -345,7 +350,7 @@ main {
 }
 
 .library-card__meta dt {
-  font-size: 0.75rem;
+  font-size: var(--font-size-panels);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(148, 163, 184, 0.7);
@@ -353,13 +358,14 @@ main {
 
 .library-card__meta dd {
   margin: 0;
+  font-size: var(--font-size-panels);
   font-weight: 600;
   color: #e2e8f0;
 }
 
 .library-card__link {
   color: #38bdf8;
-  font-size: 0.85rem;
+  font-size: var(--font-size-panels);
   text-decoration: none;
 }
 
@@ -419,12 +425,12 @@ main {
 }
 
 .agent-roster-panel__model {
-  font-size: 0.8rem;
+  font-size: var(--font-size-panels);
   color: rgba(148, 163, 184, 0.85);
 }
 
 .agent-roster-panel__status {
-  font-size: 0.7rem;
+  font-size: var(--font-size-panels);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -489,7 +495,7 @@ main {
 .agent-message__meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  font-size: var(--font-size-panels);
   color: rgba(148, 163, 184, 0.8);
 }
 

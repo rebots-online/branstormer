@@ -2,6 +2,8 @@ import { PropsWithChildren, useCallback, useMemo, useRef } from 'react';
 
 import { useWorkspaceLayoutStore } from '../../state/workspaceLayout';
 
+import { useWorkspaceLayoutStore } from '../../state/workspaceLayout';
+
 interface FloatingPanelProps {
   panelId: 'library' | 'agents' | 'models';
   footer?: React.ReactNode;
@@ -20,6 +22,8 @@ const FloatingPanel = ({
 }: PropsWithChildren<FloatingPanelProps>): JSX.Element | null => {
   const panelState = useWorkspaceLayoutStore((state) => state.panels[panelId]);
   const updatePanel = useWorkspaceLayoutStore((state) => state.updatePanel);
+  const chatDockMode = useWorkspaceLayoutStore((state) => state.chatDockMode);
+  const setChatDockMode = useWorkspaceLayoutStore((state) => state.setChatDockMode);
 
   const dragDataRef = useRef<{
     pointerId: number;
@@ -35,6 +39,8 @@ const FloatingPanel = ({
     originX: number;
     originY: number;
   }>();
+
+  const snapToHorizontalRef = useRef(false);
 
   const handleHeaderPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -55,13 +61,36 @@ const FloatingPanel = ({
         }
         const deltaX = moveEvent.clientX - dragDataRef.current.originX;
         const deltaY = moveEvent.clientY - dragDataRef.current.originY;
-        const nextX = dragDataRef.current.startX + deltaX;
-        const nextY = dragDataRef.current.startY + deltaY;
+        let nextX = dragDataRef.current.startX + deltaX;
+        let nextY = dragDataRef.current.startY + deltaY;
+        const threshold = 20;
+        const updatePayload: Partial<FloatingPanelState> = { x: nextX, y: nextY };
+
+        if (panelId === 'chat' && chatDockMode === 'vertical') {
+          let snappedSide = false;
+          if (nextX < threshold) {
+            updatePayload.x = 0;
+            snappedSide = true;
+          } else if (nextX > window.innerWidth - panelState.width - threshold) {
+            updatePayload.x = window.innerWidth - panelState.width;
+            snappedSide = true;
+          }
+          if (snappedSide) {
+            updatePayload.y = 64;
+            updatePayload.height = window.innerHeight - 124;
+          }
+        }
+
+        if (panelId === 'chat' && (nextY < threshold || nextY > window.innerHeight - panelState.height - threshold)) {
+          snapToHorizontalRef.current = true;
+        }
+
         const maxX = window.innerWidth - (bounds?.width ?? panelState.width) - 16;
         const maxY = window.innerHeight - 64;
         updatePanel(panelId, {
-          x: clamp(nextX, 16, Math.max(maxX, 16)),
-          y: clamp(nextY, 64, Math.max(maxY, 64)),
+          x: clamp(updatePayload.x ?? nextX, 16, Math.max(maxX, 16)),
+          y: clamp(updatePayload.y ?? nextY, 64, Math.max(maxY, 64)),
+          ...(updatePayload.height && { height: updatePayload.height }),
         });
       };
       const onPointerUp = (upEvent: PointerEvent) => {
@@ -70,6 +99,11 @@ const FloatingPanel = ({
           event.currentTarget.releasePointerCapture(upEvent.pointerId);
           window.removeEventListener('pointermove', onPointerMove);
           window.removeEventListener('pointerup', onPointerUp);
+
+          if (snapToHorizontalRef.current && panelId === 'chat') {
+            setChatDockMode('horizontal');
+            snapToHorizontalRef.current = false;
+          }
         }
       };
       window.addEventListener('pointermove', onPointerMove);
@@ -99,9 +133,15 @@ const FloatingPanel = ({
         }
         const deltaX = moveEvent.clientX - sizeDataRef.current.originX;
         const deltaY = moveEvent.clientY - sizeDataRef.current.originY;
+        let newWidth = Math.max(240, sizeDataRef.current.startWidth + deltaX);
+        let newHeight = Math.max(240, sizeDataRef.current.startHeight + deltaY);
+        if (panelId === 'chat' && chatDockMode === 'vertical') {
+          newWidth = Math.min(400, newWidth);
+          newHeight = Math.min(window.innerHeight - 124, Math.max(200, newHeight));
+        }
         updatePanel(panelId, {
-          width: Math.max(240, sizeDataRef.current.startWidth + deltaX),
-          height: Math.max(240, sizeDataRef.current.startHeight + deltaY),
+          width: newWidth,
+          height: newHeight,
         });
       };
       const onPointerUp = (upEvent: PointerEvent) => {

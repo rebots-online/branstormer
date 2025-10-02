@@ -28,7 +28,7 @@ export interface OpenRouterModelResponse {
   [key: string]: unknown;
 }
 
-export const DEFAULT_OPENROUTER_MODEL_ID = 'openrouter/x-ai/grok-4-fast:free';
+export const DEFAULT_OPENROUTER_MODEL_ID = 'x-ai/grok-4-fast:free';
 
 export const normalizeOpenRouterModel = (model: OpenRouterModelResponse): OpenRouterModel => ({
   id: model.id,

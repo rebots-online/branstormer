@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export type ChatDockMode = 'horizontal' | 'vertical' | 'floating';
 
-type PanelId = 'library' | 'agents' | 'models';
+type PanelId = 'library' | 'agents' | 'models' | 'chat';
 
 export interface FloatingPanelState {
   id: PanelId;
@@ -14,17 +14,31 @@ export interface FloatingPanelState {
   visible: boolean;
 }
 
+export interface FontSizeSettings {
+  body: string;
+  header: string;
+  panels: string;
+}
+
 interface WorkspaceLayoutState {
   panels: Record<PanelId, FloatingPanelState>;
   chatDockMode: ChatDockMode;
   settingsOpen: boolean;
   shareMenuOpen: boolean;
+  fontSize: FontSizeSettings;
   setChatDockMode: (mode: ChatDockMode) => void;
   updatePanel: (id: PanelId, partial: Partial<FloatingPanelState>) => void;
   togglePanel: (id: PanelId, visible?: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setShareMenuOpen: (open: boolean) => void;
+  setFontSize: (key: keyof FontSizeSettings, value: string) => void;
 }
+
+const DEFAULT_FONT_SIZE: FontSizeSettings = {
+  body: '16px',
+  header: '20px',
+  panels: '14px',
+};
 
 const DEFAULT_PANEL_STATE: Record<PanelId, FloatingPanelState> = {
   library: {
@@ -54,34 +68,70 @@ const DEFAULT_PANEL_STATE: Record<PanelId, FloatingPanelState> = {
     height: 260,
     visible: false,
   },
+  chat: {
+    id: 'chat',
+    title: 'Chat Dock',
+    x: 800,
+    y: 64,
+    width: 320,
+    height: 500,
+    visible: false,
+  },
 };
 
-export const useWorkspaceLayoutStore = create<WorkspaceLayoutState>((set) => ({
-  panels: DEFAULT_PANEL_STATE,
-  chatDockMode: 'horizontal',
-  settingsOpen: false,
-  shareMenuOpen: false,
-  setChatDockMode: (mode) => set({ chatDockMode: mode }),
-  updatePanel: (id, partial) =>
-    set((state) => ({
-      panels: {
-        ...state.panels,
-        [id]: {
-          ...state.panels[id],
-          ...partial,
+const loadFontSize = (): FontSizeSettings => {
+  const saved = localStorage.getItem('workspaceFontSize');
+  if (saved) {
+    try {
+      return { ...DEFAULT_FONT_SIZE, ...JSON.parse(saved) };
+    } catch {
+      return DEFAULT_FONT_SIZE;
+    }
+  }
+  return DEFAULT_FONT_SIZE;
+};
+
+const saveFontSize = (fontSize: FontSizeSettings) => {
+  localStorage.setItem('workspaceFontSize', JSON.stringify(fontSize));
+};
+
+export const useWorkspaceLayoutStore = create<WorkspaceLayoutState>((set, get) => {
+  const initialFontSize = loadFontSize();
+
+  return {
+    panels: DEFAULT_PANEL_STATE,
+    chatDockMode: 'horizontal',
+    settingsOpen: false,
+    shareMenuOpen: false,
+    fontSize: initialFontSize,
+    setChatDockMode: (mode) => set({ chatDockMode: mode }),
+    updatePanel: (id, partial) =>
+      set((state) => ({
+        panels: {
+          ...state.panels,
+          [id]: {
+            ...state.panels[id],
+            ...partial,
+          },
         },
-      },
-    })),
-  togglePanel: (id, visible) =>
-    set((state) => ({
-      panels: {
-        ...state.panels,
-        [id]: {
-          ...state.panels[id],
-          visible: visible ?? !state.panels[id]?.visible,
+      })),
+    togglePanel: (id, visible) =>
+      set((state) => ({
+        panels: {
+          ...state.panels,
+          [id]: {
+            ...state.panels[id],
+            visible: visible ?? !state.panels[id]?.visible,
+          },
         },
-      },
-    })),
-  setSettingsOpen: (open) => set({ settingsOpen: open }),
-  setShareMenuOpen: (open) => set({ shareMenuOpen: open }),
-}));
+      })),
+    setSettingsOpen: (open) => set({ settingsOpen: open }),
+    setShareMenuOpen: (open) => set({ shareMenuOpen: open }),
+    setFontSize: (key, value) =>
+      set((state) => {
+        const newFontSize = { ...state.fontSize, [key]: value };
+        saveFontSize(newFontSize);
+        return { fontSize: newFontSize };
+      }),
+  };
+});

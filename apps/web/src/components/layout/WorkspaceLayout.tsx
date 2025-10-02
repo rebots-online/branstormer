@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import FloatingPanelLayer from './FloatingPanelLayer';
 import SettingsDrawer from './SettingsDrawer';
@@ -48,6 +48,15 @@ const WorkspaceLayout = ({
   const setSettingsOpen = useWorkspaceLayoutStore((state) => state.setSettingsOpen);
   const shareMenuOpen = useWorkspaceLayoutStore((state) => state.shareMenuOpen);
   const setShareMenuOpen = useWorkspaceLayoutStore((state) => state.setShareMenuOpen);
+  const fontSize = useWorkspaceLayoutStore((state) => state.fontSize);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--font-size-body', fontSize.body);
+      document.documentElement.style.setProperty('--font-size-header', fontSize.header);
+      documentElement.style.setProperty('--font-size-panels', fontSize.panels);
+    }
+  }, [fontSize]);
 
   const panelItems = useMemo(() => floatingPanels, [floatingPanels]);
 
